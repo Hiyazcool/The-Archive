@@ -4,11 +4,18 @@ using UnityEngine;
 using Hiyazcool;
 namespace Inventory
 {
-    /*
+    /* Priority High
      * Put this into Hiyazcool Namespace
      * Flesh everything out and Test
      * make events to signal UI and other classes of changes
      * implement Input
+     * AddAmount and Subtract Amounts will not work correctly I believe
+     * Due to Ref not carrying thruogh all of them
+     * Private Methods should work but Rework Exposed to have an in / out? or figure how to persist the reference maybe by modifing the original after the calc
+     * Make it easily serializable?
+     * Finish Implementing IInvetoryItem Structs
+     * 
+     * 
      */
     public static class Inventory
     {
@@ -21,12 +28,13 @@ namespace Inventory
         }
         public struct InventorySlot
         {
+            private IInventoryItem _item;
             public IInventoryItem Item
             {
-                get { return Item; }
+                get { return _item; }
                 private set
                 {
-                    Item = value;
+                    _item = value;
                     SlotSize = value.MaxSize;
                 }
             }
@@ -41,10 +49,7 @@ namespace Inventory
                 int addAmount = (amount <= SlotSize - ItemCount) ? amount : SlotSize - ItemCount;
                 ItemCount += addAmount;
                 UpdateSlot();
-                if ((amount -= addAmount) == 0)
-                    return true;
-                else
-                    return false;
+                return (amount -= addAmount) == 0 ? true : false;
             }
             public bool AddAmount(ref InventorySlot slot)
             {
@@ -68,10 +73,7 @@ namespace Inventory
                 int SubtractAmount = (amount <= ItemCount) ? amount : ItemCount;
                 ItemCount -= SubtractAmount;
                 UpdateSlot();
-                if ((amount -= SubtractAmount) == 0)
-                    return true;
-                else
-                    return false;
+                return (amount -= SubtractAmount) == 0 ? true : false;
             }
             public bool SubtractAmount(ref InventorySlot slot)
             {
@@ -133,8 +135,8 @@ namespace Inventory
                     return;
                 }
             }
-            public void EmptySlot() => this = InventorySlot.Empty;
-            public static InventorySlot Empty = new InventorySlot()
+            private void EmptySlot() => this = InventorySlot.CreateEmptySlot();
+            public static InventorySlot CreateEmptySlot() => new InventorySlot()
             {
                 Item = null,
                 SlotSize = 0,
